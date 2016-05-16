@@ -37,8 +37,8 @@ static PyObject *foohid_create(PyObject *self, PyObject *args) {
 	Py_ssize_t descriptor_len;
 
 	if (!PyArg_ParseTuple(args, "s#s#", &name, &name_len, &descriptor, &descriptor_len)) {
-                return NULL;
-    }
+		return NULL;
+	}
 
 	if (name_len == 0 || descriptor_len == 0) {
 		return PyErr_Format(PyExc_ValueError, "invalid values");
@@ -53,10 +53,10 @@ static PyObject *foohid_create(PyObject *self, PyObject *args) {
 	input[0] = (uint64_t) name;           // Device name
 	input[1] = (uint64_t) name_len;       // Device name length
 	input[2] = (uint64_t) descriptor;     // Report descriptor
-    input[3] = (uint64_t) descriptor_len; // Descriptor length
-    input[4] = (uint64_t) strdup("SN 123456");  // Serial number (temp)
-    input[5] = (uint64_t) 9;              // Serial number lenght
-    input[6] = (uint64_t) 2;              // Vendor ID
+	input[3] = (uint64_t) descriptor_len; // Descriptor length
+	input[4] = (uint64_t) strdup("SN 123456");  // Serial number (temp)
+	input[5] = (uint64_t) 9;              // Serial number lenght
+	input[6] = (uint64_t) 2;              // Vendor ID
 	input[7] = (uint64_t) 3;              // Device ID
 
 	kern_return_t ret = IOConnectCallScalarMethod(conn, FOOHID_CREATE, input, 8, NULL, 0);
@@ -71,86 +71,86 @@ static PyObject *foohid_create(PyObject *self, PyObject *args) {
 }
 
 static PyObject *foohid_send(PyObject *self, PyObject *args) {
-        char *name;
-        Py_ssize_t name_len;
-        char *descriptor;
-        Py_ssize_t descriptor_len;
+	char *name;
+	Py_ssize_t name_len;
+	char *descriptor;
+	Py_ssize_t descriptor_len;
 
-        if (!PyArg_ParseTuple(args, "s#s#", &name, &name_len, &descriptor, &descriptor_len)) {
-                return NULL;
-        }
+	if (!PyArg_ParseTuple(args, "s#s#", &name, &name_len, &descriptor, &descriptor_len)) {
+		return NULL;
+	}
 
-        if (name_len == 0 || descriptor_len == 0) {
-                return PyErr_Format(PyExc_ValueError, "invalid values");
-        }
+	if (name_len == 0 || descriptor_len == 0) {
+		return PyErr_Format(PyExc_ValueError, "invalid values");
+	}
 
-        io_connect_t conn;
-        if (foohid_connect(&conn)) {
-                return PyErr_Format(PyExc_SystemError, "unable to open " FOOHID_SERVICE " service");
-        }
+	io_connect_t conn;
+	if (foohid_connect(&conn)) {
+		return PyErr_Format(PyExc_SystemError, "unable to open " FOOHID_SERVICE " service");
+	}
 
-        uint64_t input[4];
-        input[0] = (uint64_t) name;
-        input[1] = (uint64_t) name_len;
-        input[2] = (uint64_t) descriptor;
-        input[3] = (uint64_t) descriptor_len;
+	uint64_t input[4];
+	input[0] = (uint64_t) name;
+	input[1] = (uint64_t) name_len;
+	input[2] = (uint64_t) descriptor;
+	input[3] = (uint64_t) descriptor_len;
 
-        kern_return_t ret = IOConnectCallScalarMethod(conn, FOOHID_SEND, input, 4, NULL, 0);
-        foohid_close(conn);
+	kern_return_t ret = IOConnectCallScalarMethod(conn, FOOHID_SEND, input, 4, NULL, 0);
+	foohid_close(conn);
 
-        if (ret != KERN_SUCCESS) {
-                return PyErr_Format(PyExc_SystemError, "unable to send hid message");
-        }
+	if (ret != KERN_SUCCESS) {
+		return PyErr_Format(PyExc_SystemError, "unable to send hid message");
+	}
 
-        Py_INCREF(Py_True);
-        return Py_True;
+	Py_INCREF(Py_True);
+	return Py_True;
 }
 
 static PyObject *foohid_destroy(PyObject *self, PyObject *args) {
-        char *name;
-        Py_ssize_t name_len;
-    
-        if (!PyArg_ParseTuple(args, "s#", &name, &name_len)) {
-                return NULL;
-        }
+	char *name;
+	Py_ssize_t name_len;
 
-        if (name_len == 0) {
-                return PyErr_Format(PyExc_ValueError, "invalid name");
-        }
+	if (!PyArg_ParseTuple(args, "s#", &name, &name_len)) {
+		return NULL;
+	}
 
-        io_connect_t conn;
-        if (foohid_connect(&conn)) {
-                return PyErr_Format(PyExc_SystemError, "unable to open " FOOHID_SERVICE " service");
-        }
+	if (name_len == 0) {
+		return PyErr_Format(PyExc_ValueError, "invalid name");
+	}
 
-        uint64_t input[2];
-        input[0] = (uint64_t) name;
-        input[1] = (uint64_t) name_len;
+	io_connect_t conn;
+	if (foohid_connect(&conn)) {
+		return PyErr_Format(PyExc_SystemError, "unable to open " FOOHID_SERVICE " service");
+	}
 
-        kern_return_t ret = IOConnectCallScalarMethod(conn, FOOHID_DESTROY, input, 2, NULL, 0);
-        foohid_close(conn);
+	uint64_t input[2];
+	input[0] = (uint64_t) name;
+	input[1] = (uint64_t) name_len;
 
-        if (ret != KERN_SUCCESS) {
-                return PyErr_Format(PyExc_SystemError, "unable to destroy hid device");
-        }
+	kern_return_t ret = IOConnectCallScalarMethod(conn, FOOHID_DESTROY, input, 2, NULL, 0);
+	foohid_close(conn);
 
-        Py_INCREF(Py_True);
-        return Py_True;
+	if (ret != KERN_SUCCESS) {
+		return PyErr_Format(PyExc_SystemError, "unable to destroy hid device");
+	}
+
+	Py_INCREF(Py_True);
+	return Py_True;
 }
 
 static PyObject *foohid_list(PyObject *self, PyObject *args) {
 
-        if (!PyArg_ParseTuple(args, "")) {
-                return NULL;
-        }
+	if (!PyArg_ParseTuple(args, "")) {
+		return NULL;
+	}
 
-        io_connect_t conn;
-        if (foohid_connect(&conn)) {
-                return PyErr_Format(PyExc_SystemError, "unable to open " FOOHID_SERVICE " service");
-        }
+	io_connect_t conn;
+	if (foohid_connect(&conn)) {
+		return PyErr_Format(PyExc_SystemError, "unable to open " FOOHID_SERVICE " service");
+	}
 
-        uint32_t output_count = 2;
-        uint64_t output[2] = {0, 0};
+	uint32_t output_count = 2;
+	uint64_t output[2] = {0, 0};
 
 	uint16_t buf_len = 4096;
 	char *buf = malloc(buf_len);
@@ -158,17 +158,17 @@ static PyObject *foohid_list(PyObject *self, PyObject *args) {
 		return PyErr_Format(PyExc_MemoryError, "unable to allocate memory");
 	}
 
-        uint64_t input[2];
+	uint64_t input[2];
 
 	for(;;) {
-        	input[0] = (uint64_t) buf;
-        	input[1] = (uint64_t) buf_len;
-        	kern_return_t ret = IOConnectCallScalarMethod(conn, FOOHID_LIST, input, 2, output, &output_count);
-        	foohid_close(conn);
-        	if (ret != KERN_SUCCESS) {
-			free(buf);
-                	return PyErr_Format(PyExc_SystemError, "unable to list hid devices");
-        	}
+		input[0] = (uint64_t) buf;
+		input[1] = (uint64_t) buf_len;
+		kern_return_t ret = IOConnectCallScalarMethod(conn, FOOHID_LIST, input, 2, output, &output_count);
+		foohid_close(conn);
+		if (ret != KERN_SUCCESS) {
+		free(buf);
+			return PyErr_Format(PyExc_SystemError, "unable to list hid devices");
+		}
 		// all is fine
 		if (output[0] == 0) {
 			PyObject *ret = PyTuple_New(output[1]);
@@ -185,7 +185,7 @@ static PyObject *foohid_list(PyObject *self, PyObject *args) {
 		buf_len = output[0];
 		char *tmp = realloc(buf, buf_len);
 		if (!tmp) {
-			free(buf);
+			free(buzf);
 			return PyErr_Format(PyExc_MemoryError, "unable to allocate memory");
 		}
 		buf = tmp;
@@ -195,11 +195,11 @@ static PyObject *foohid_list(PyObject *self, PyObject *args) {
 
 
 static PyMethodDef foohidMethods[] = {
-    {"create", foohid_create, METH_VARARGS, "create a new foohid device"},
-    {"destroy", foohid_destroy, METH_VARARGS, "destroy a foohid device"},
-    {"send", foohid_send, METH_VARARGS, "send a hid message to a foohid device"},
-    {"list", foohid_list, METH_VARARGS, "list the currently available foohid devices"},
-    {NULL, NULL, 0, NULL}
+	{"create", foohid_create, METH_VARARGS, "create a new foohid device"},
+	{"destroy", foohid_destroy, METH_VARARGS, "destroy a foohid device"},
+	{"send", foohid_send, METH_VARARGS, "send a hid message to a foohid device"},
+	{"list", foohid_list, METH_VARARGS, "list the currently available foohid devices"},
+	{NULL, NULL, 0, NULL}
 };
 
 PyMODINIT_FUNC initfoohid(void) {
