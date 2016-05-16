@@ -35,8 +35,15 @@ static PyObject *foohid_create(PyObject *self, PyObject *args) {
 	Py_ssize_t name_len;
 	char *descriptor;
 	Py_ssize_t descriptor_len;
+	char *serial_num;
+	Py_ssize_t serial_num_len;
+	int vid, pid;
 
-	if (!PyArg_ParseTuple(args, "s#s#", &name, &name_len, &descriptor, &descriptor_len)) {
+	if (!PyArg_ParseTuple(args, "s#s#s#ii",
+						  &name, &name_len,
+						  &descriptor, &descriptor_len,
+						  &serial_num, &serial_num_len,
+						  &vid, &pid)) {
 		return NULL;
 	}
 
@@ -54,10 +61,10 @@ static PyObject *foohid_create(PyObject *self, PyObject *args) {
 	input[1] = (uint64_t) name_len;       // Device name length
 	input[2] = (uint64_t) descriptor;     // Report descriptor
 	input[3] = (uint64_t) descriptor_len; // Descriptor length
-	input[4] = (uint64_t) strdup("SN 123456");  // Serial number (temp)
-	input[5] = (uint64_t) 9;              // Serial number lenght
-	input[6] = (uint64_t) 2;              // Vendor ID
-	input[7] = (uint64_t) 3;              // Device ID
+	input[4] = (uint64_t) serial_num;     // Serial number (temp)
+	input[5] = (uint64_t) serial_num_len; // Serial number lenght
+	input[6] = (uint64_t) vid;            // Vendor ID
+	input[7] = (uint64_t) pid;            // Device ID
 
 	kern_return_t ret = IOConnectCallScalarMethod(conn, FOOHID_CREATE, input, 8, NULL, 0);
 	foohid_close(conn);
@@ -185,7 +192,7 @@ static PyObject *foohid_list(PyObject *self, PyObject *args) {
 		buf_len = output[0];
 		char *tmp = realloc(buf, buf_len);
 		if (!tmp) {
-			free(buzf);
+			free(buf);
 			return PyErr_Format(PyExc_MemoryError, "unable to allocate memory");
 		}
 		buf = tmp;
